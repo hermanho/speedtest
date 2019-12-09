@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: leighton-speedtest-test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: leighton-speedtest-test
+  template:
+    metadata:
+      labels:
+        app: leighton-speedtest-test
+    spec:
+      containers:
+        - name: leighton-speedtest-node
+          image: hermanho/speedtest-node:latest
+          imagePullPolicy: Always
+          resources:
+            requests:
+              cpu: 250m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          # command: ["node"]
+          # args: ["--inspect-brk=0.0.0.0", "src/SpeedTest.js"]
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 8888
+            initialDelaySeconds: 5
+            timeoutSeconds: 10
+            periodSeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 8888
+            initialDelaySeconds: 10
+            timeoutSeconds: 10
+      volumes:
+        - name: azure
+          persistentVolumeClaim:
+            claimName: pvc-azure-file-share-k8s-ssl-test
+            readOnly: false
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: leighton-speedtest-test-loadbalancer
+  labels:
+    app: leighton-speedtest-test
+  annotations:
+    service.beta.kubernetes.io/azure-dns-label-name: leighton-speedtest-test
+spec:
+  type: LoadBalancer
+  ports:
+    - port: 80
+      name: http
+      targetPort: 8888
+  selector:
+    app: leighton-speedtest-test
+  externalTrafficPolicy: Local
+---
+
