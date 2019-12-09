@@ -7,6 +7,8 @@ const helpers = require('./Helpers');
 
 let cache;
 
+Server.set('trust proxy', 'loopback, linklocal, uniquelocal');
+
 Server.get('/empty', function (req, res) {
     res.sendStatus(200);
 });
