@@ -72,6 +72,8 @@ function startStop(){
             updateUI(true);
 		};
 		s.start();
+		I("dateTimeStart").textContent=(new Date()).toLocaleString();
+		I("dateTimeEnd").textContent="";
 	}
 }
 //this function reads the data sent back by the test and updates the UI
@@ -86,6 +88,9 @@ function updateUI(forced){
 	drawMeter(I("ulMeter"),mbpsToAmount(Number(uiData.ulStatus*(status==3?oscillate():1))),meterBk,ulColor,Number(uiData.ulProgress),progColor);
 	I("pingText").textContent=format(uiData.pingStatus);
 	I("jitText").textContent=format(uiData.jitterStatus);
+
+	if (status==4)
+		I("dateTimeEnd").textContent=(new Date()).toLocaleString();
 }
 function oscillate(){
 	return 1+0.02*Math.sin(Date.now()/100);
@@ -253,6 +258,14 @@ function initUI(){
 		</div>
 		<div id="ipArea">
 			<span id="ip"></span>
+		</div>
+		<div id="dateTimePeriodArea">
+			<div>
+				Start: <span id="dateTimeStart"></span>
+			</div>
+				<div>
+				End: <span id="dateTimeEnd"></span>
+			</div>
 		</div>
 	</div>
 	<a href="https://github.com/librespeed/speedtest">Source code</a>
