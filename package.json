@@ -7,10 +7,10 @@
   "license": "MIT",
   "private": false,
   "dependencies": {
-    "express": "^4.16.3",
+    "express": "^4.17.1",
     "gps-distance": "^0.0.4",
     "random-bytes": "^1.0.0",
-    "request": "^2.85.0"
+    "request": "^2.88.0"
   },
   "pkg": {
     "assets": [
