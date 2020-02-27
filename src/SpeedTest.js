@@ -4,18 +4,21 @@ const randomBytes = require('random-bytes');
 const path = require('path');
 const request = require('request');
 const helpers = require('./Helpers');
+const cors = require('cors');
 
 let cache;
 
+Server.use(cors());
+
 Server.get('/empty', function (req, res) {
-    res.sendStatus(200);
+  res.status(200).send('');
 });
 
 Server.post('/empty', function (req, res) {
     res.set("Cache-Control", "no-store, no-cache, must-revalidate, max-age=0");
     res.set("Cache-Control", "post-check=0, pre-check=0");
     res.set("Pragma", "no-cache");
-    res.sendStatus(200);
+    res.status(200).send('');
 });
 
 Server.get('/garbage', function (req, res) {
@@ -27,13 +30,13 @@ Server.get('/garbage', function (req, res) {
     res.set('Cache-Control', 'post-check=0, pre-check=0', false);
     res.set('Pragma', 'no-cache');
     const requestedSize = (req.query.ckSize || 100);
-    
+
     const send = () => {
         for (let i = 0; i < requestedSize; i++)
             res.write(cache);
         res.end();
     }
-    
+
     if (cache) {
         send();
     } else {
