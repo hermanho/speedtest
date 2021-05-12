@@ -1,21 +1,25 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: leighton-speedtest-test
+  name: speedtest-test
+  namespace: speedtest
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: leighton-speedtest-test
+      app: speedtest-test
   template:
     metadata:
       labels:
-        app: leighton-speedtest-test
+        app: speedtest-test
     spec:
       containers:
-        - name: leighton-speedtest-node
+        - name: speedtest-node
           image: hermanho/speedtest-node:latest
-          imagePullPolicy: Always
+          # imagePullPolicy: Always
+          ports:
+          - containerPort: 8888
+            protocol: TCP
           resources:
             requests:
               cpu: 250m
@@ -38,28 +42,49 @@ spec:
               port: 8888
             initialDelaySeconds: 10
             timeoutSeconds: 10
-      volumes:
-        - name: azure
-          persistentVolumeClaim:
-            claimName: pvc-azure-file-share-k8s-ssl-test
-            readOnly: false
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: leighton-speedtest-test-loadbalancer
+  name: speedtest-test-clusterip
+  namespace: speedtest
   labels:
-    app: leighton-speedtest-test
+    app: speedtest-test
   annotations:
-    service.beta.kubernetes.io/azure-dns-label-name: leighton-speedtest-test
+    service.beta.kubernetes.io/azure-dns-label-name: speedtest-test
 spec:
-  type: LoadBalancer
+  type: ClusterIP
   ports:
-    - port: 80
-      name: http
+    - port: 8888
       targetPort: 8888
   selector:
-    app: leighton-speedtest-test
-  externalTrafficPolicy: Local
+    app: speedtest-test
 ---
-
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: speedtest-test-ingress
+  namespace: speedtest
+  labels:
+    app.kubernetes.io/name: speedtest-test
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers "Request-Id: $req_id";
+spec:
+  tls:
+    - hosts:
+        - home.catweb.fun  # host
+      secretName: home-catweb-fun-tls-prod
+  rules:
+    - host: home.catweb.fun
+      http:
+        paths:
+          - path: '/speedtest(/|$)(.*)'
+            pathType: Prefix
+            backend:
+              service:
+                name: speedtest-test-clusterip
+                port:
+                  number: 8888
+---
