@@ -1,0 +1,10 @@
+[
+    {
+        "name": "Current Server",
+        "server": "*",
+        "dlURL": "garbage",
+        "ulURL": "empty",
+        "pingURL": "empty",
+        "getIpURL": "getIP"
+    }
+]
