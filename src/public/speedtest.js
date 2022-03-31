@@ -86,6 +86,8 @@ Speedtest.prototype = {
         throw "Name string missing from server definition (name)";
       if (typeof server.server !== "string")
         throw "Server address string missing from server definition (server)";
+      if (server.server === "*")
+        server.server = location.href;
       if (server.server.charAt(server.server.length - 1) != "/")
         server.server += "/";
       if (server.server.indexOf("//") == 0)
