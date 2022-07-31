@@ -2,7 +2,7 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ node ]
+    branches: [ node, node-old ]
 
 env:
   REPOSITORY_URI: hermanho/speedtest-node
