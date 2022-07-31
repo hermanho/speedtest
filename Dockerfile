@@ -1,5 +1,7 @@
 FROM node:alpine
 
+EXPOSE 8888
+
 WORKDIR /app
 COPY package.json .
 COPY /src ./src

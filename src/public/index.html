@@ -38,6 +38,10 @@
             //show test UI
             I("testWrapper").className = "visible";
             initUI();
+            //auto start
+            setTimeout(() => {
+              startStop();
+            }, 3000);
           } else { //no servers are available, the test cannot proceed
             noServersAvailable();
           }
