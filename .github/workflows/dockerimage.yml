@@ -14,7 +14,8 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - run: echo ::set-env name=IMAGE_TAG::${GITHUB_REF##*/}-${GITHUB_SHA::8}
+    - run: echo "IMAGE_TAG=${GITHUB_REF##*/}-${GITHUB_SHA::8}" >> $GITHUB_ENV
+
       
     - uses: actions/checkout@v2
       
@@ -25,8 +26,8 @@ jobs:
     - name: Update tagging
       if: startsWith(github.ref, 'ref/head/v')
       run: |
-        echo ::set-env name=GIT_DESCRIBE::$(git describe)
-        echo ::set-env name=IMAGE_TAG::$GIT_DESCRIBE-${GITHUB_SHA::8}
+        echo "GIT_DESCRIBE=$(git describe)" >> $GITHUB_ENV
+        echo "IMAGE_TAG=$GIT_DESCRIBE-${GITHUB_SHA::8}" >> $GITHUB_ENV
         
     - name: Tag docker image
       run: |
