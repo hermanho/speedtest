@@ -40,7 +40,9 @@
             initUI();
             //auto start
             setTimeout(() => {
-              startStop();
+              if (s.getState() != 3) {
+                startStop();
+              }
             }, 3000);
           } else { //no servers are available, the test cannot proceed
             noServersAvailable();
