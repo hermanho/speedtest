@@ -2,7 +2,6 @@ const express = require('express');
 const Server = express();
 const randomBytes = require('random-bytes');
 const path = require('path');
-const request = require('request');
 const helpers = require('./Helpers');
 const cors = require('cors');
 
@@ -10,7 +9,7 @@ let cache;
 
 Server.use(cors());
 
-Server.set('trust proxy', 'loopback, linklocal, uniquelocal');
+Server.set('trust proxy', 'loopback');
 
 Server.get('/empty', function (req, res) {
     res.status(200).send('');
@@ -23,7 +22,7 @@ Server.post('/empty', function (req, res) {
     res.status(200).send('');
 });
 
-Server.get('/garbage', function (req, res) {
+Server.get('/garbage', async function (req, res) {
     res.set('Content-Description', 'File Transfer');
     res.set('Content-Type', 'application/octet-stream');
     res.set('Content-Disposition', 'attachment; filename=random.dat');
@@ -36,41 +35,38 @@ Server.get('/garbage', function (req, res) {
     const send = () => {
         for (let i = 0; i < requestedSize; i++)
             res.write(cache);
-        res.end();
+        return res.end();
     }
 
     if (cache) {
-        send();
+        return send();
     } else {
-        randomBytes(1048576, (error, bytes) => {
-            cache = bytes;
-            send();
-        });
+        cache = await randomBytes(1048576);
+        return send();
     }
 
 });
 
-Server.get('/getIP', function (req, res) {
-    let requestIP = req.headers['x-forwarded-for'] || req.connection.remoteAddress || req.headers['HTTP_CLIENT_IP'] || req.headers['X-Real-IP'] || req.headers['HTTP_X_FORWARDED_FOR'];
+Server.get('/getIP', async function (req, res) {
+    let requestIP = req.headers['x-forwarded-for'] || req.socket.remoteAddress || req.headers['HTTP_CLIENT_IP'] || req.headers['X-Real-IP'] || req.headers['HTTP_X_FORWARDED_FOR'] || req.ip;
     if (requestIP.substr(0, 7) === "::ffff:") {
         requestIP = requestIP.substr(7)
     }
-    request('https://ipinfo.io/' + requestIP + '/json', function (err, body, ipData) {
-        ipData = JSON.parse(ipData);
-        if (err) res.send(requestIP);
-        else {
-            request('https://ipinfo.io/json', function (err, body, serverData) {
-                serverData = JSON.parse(serverData);
-                if (err) res.send(`${requestIP} - ${ipData.org}, ${ipData.country}`);
-                else if (ipData.loc && serverData.loc) {
-                    const d = helpers.calcDistance(ipData.loc.split(','), serverData.loc.split(','));
-                    res.send(`${requestIP} - ${ipData.org}, ${ipData.country} (${d}km)`);
-                } else {
-                    res.send(`${requestIP} - ${ipData.org}, ${ipData.country}`);
-                }
-            })
-        }
-    });
+    const jsonRequest = await fetch('https://ipinfo.io/' + requestIP + '/json');
+    const ipData = await jsonRequest.json();
+    if (!jsonRequest.ok) {
+        res.send(requestIP);
+    }
+
+    const serverDataRequest = await fetch('https://ipinfo.io/json');
+    const serverData = await serverDataRequest.json();
+
+    if (serverDataRequest.ok && ipData.loc && serverData.loc) {
+        const d = helpers.calcDistance(ipData.loc.split(','), serverData.loc.split(','));
+        res.send(`${requestIP} - ${ipData.org}, ${ipData.country} (${d}km)`);
+    } else {
+        res.send(`${requestIP} - ${ipData.org}, ${ipData.country}`);
+    }
 });
 
 Server.use(express.static(path.join(__dirname, 'public')));
