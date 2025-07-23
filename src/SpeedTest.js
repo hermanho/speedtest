@@ -52,6 +52,9 @@ Server.get('/getIP', async function (req, res) {
     if (requestIP.substr(0, 7) === "::ffff:") {
         requestIP = requestIP.substr(7)
     }
+
+    console.log('Incoming request from: ' + requestIP);
+
     const jsonRequest = await fetch('https://ipinfo.io/' + requestIP + '/json');
     const ipData = await jsonRequest.json();
     if (!jsonRequest.ok) {
