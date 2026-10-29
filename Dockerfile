@@ -1,6 +1,7 @@
 FROM node:alpine
 
-EXPOSE 8888
+ENV PORT=80
+EXPOSE 80
 
 WORKDIR /app
 COPY package.json .
